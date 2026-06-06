@@ -178,4 +178,4 @@ As respostas são produzidas em linguagem natural, facilitando a compreensão po
 
 ## 📄 Licença
 
-Este projeto foi desenvolvido exclusivamente para fins acadêmicos na disciplina **Disruptive Architectures: IoT, IOB & Generative IA**, da FIAP, como parte da Global Solution 2026-1.
+Este projeto foi desenvolvido exclusivamente para fins acadêmicos na disciplina **Disruptive Architectures: IoT, IOB & Generative IA**, da FIAP, como parte da Global Solution 2026-1.a
