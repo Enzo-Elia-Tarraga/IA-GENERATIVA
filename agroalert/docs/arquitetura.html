@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgroAlert — Diagrama de Arquitetura</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --green: #2ECC71;
+    --green-dark: #1a7a44;
+    --green-glow: rgba(46,204,113,0.18);
+    --blue: #3498DB;
+    --yellow: #F1C40F;
+    --orange: #E67E22;
+    --red: #E74C3C;
+    --bg: #0B0F0E;
+    --bg2: #111714;
+    --bg3: #161D19;
+    --border: rgba(46,204,113,0.2);
+    --text: #E8F5EE;
+    --text2: #8FA899;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Space Grotesk', sans-serif;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 48px 24px;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 50% 0%, rgba(46,204,113,0.07) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 30% at 80% 80%, rgba(52,152,219,0.05) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  /* grid bg */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(46,204,113,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(46,204,113,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 56px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .header-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--green);
+    background: rgba(46,204,113,0.08);
+    border: 1px solid rgba(46,204,113,0.2);
+    padding: 5px 14px;
+    border-radius: 20px;
+    margin-bottom: 16px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .header-badge::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--green);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  h1 {
+    font-size: clamp(28px, 4vw, 42px);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-bottom: 10px;
+  }
+
+  h1 span { color: var(--green); }
+
+  .subtitle {
+    font-size: 15px;
+    color: var(--text2);
+    font-weight: 400;
+  }
+
+  /* DIAGRAM */
+  .diagram {
+    width: 100%;
+    max-width: 900px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* LAYER */
+  .layer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0;
+    position: relative;
+  }
+
+  .node {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px 28px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: relative;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    cursor: default;
+    min-width: 280px;
+    max-width: 420px;
+  }
+
+  .node:hover {
+    border-color: rgba(46,204,113,0.5);
+    box-shadow: 0 0 30px rgba(46,204,113,0.1);
+  }
+
+  .node-icon {
+    font-size: 32px;
+    flex-shrink: 0;
+    filter: drop-shadow(0 0 8px rgba(46,204,113,0.3));
+  }
+
+  .node-content { flex: 1; }
+
+  .node-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 3px;
+  }
+
+  .node-desc {
+    font-size: 12px;
+    color: var(--text2);
+    font-family: var(--mono);
+    line-height: 1.5;
+  }
+
+  .node-tag {
+    font-size: 10px;
+    font-family: var(--mono);
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: rgba(46,204,113,0.1);
+    color: var(--green);
+    border: 1px solid rgba(46,204,113,0.2);
+    white-space: nowrap;
+    align-self: flex-start;
+  }
+
+  /* colored variants */
+  .node.blue { border-color: rgba(52,152,219,0.25); }
+  .node.blue:hover { border-color: rgba(52,152,219,0.6); box-shadow: 0 0 30px rgba(52,152,219,0.1); }
+  .node.blue .node-tag { background: rgba(52,152,219,0.1); color: var(--blue); border-color: rgba(52,152,219,0.25); }
+
+  .node.orange { border-color: rgba(230,126,34,0.25); }
+  .node.orange:hover { border-color: rgba(230,126,34,0.6); box-shadow: 0 0 30px rgba(230,126,34,0.1); }
+  .node.orange .node-tag { background: rgba(230,126,34,0.1); color: var(--orange); border-color: rgba(230,126,34,0.25); }
+
+  .node.yellow { border-color: rgba(241,196,15,0.25); }
+  .node.yellow:hover { border-color: rgba(241,196,15,0.6); box-shadow: 0 0 30px rgba(241,196,15,0.1); }
+  .node.yellow .node-tag { background: rgba(241,196,15,0.1); color: var(--yellow); border-color: rgba(241,196,15,0.25); }
+
+  .node.green { border-color: rgba(46,204,113,0.35); }
+  .node.green .node-tag { background: rgba(46,204,113,0.15); color: var(--green); }
+
+  /* ARROW */
+  .arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 4px 0;
+    position: relative;
+  }
+
+  .arrow-line {
+    width: 2px;
+    height: 36px;
+    background: linear-gradient(to bottom, rgba(46,204,113,0.15), rgba(46,204,113,0.5));
+    position: relative;
+  }
+
+  .arrow-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text2);
+    background: var(--bg2);
+    border: 1px solid rgba(255,255,255,0.06);
+    padding: 3px 10px;
+    border-radius: 6px;
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    white-space: nowrap;
+  }
+
+  .arrow-head {
+    width: 0; height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 8px solid rgba(46,204,113,0.6);
+  }
+
+  /* OUTPUT section */
+  .output-section {
+    margin-top: 8px;
+    background: var(--bg2);
+    border: 1px solid rgba(46,204,113,0.15);
+    border-radius: 16px;
+    padding: 24px 28px;
+    width: 100%;
+    max-width: 900px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .output-title {
+    font-size: 12px;
+    font-family: var(--mono);
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 16px;
+  }
+
+  .output-items {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+  }
+
+  .output-item {
+    background: var(--bg3);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 10px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .output-item-icon { font-size: 18px; }
+
+  .output-item-text {
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.5;
+  }
+
+  .output-item-text strong {
+    display: block;
+    color: var(--text);
+    font-weight: 500;
+    margin-bottom: 1px;
+  }
+
+  /* tech stack */
+  .stack {
+    margin-top: 32px;
+    width: 100%;
+    max-width: 900px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .stack-title {
+    font-size: 12px;
+    font-family: var(--mono);
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 12px;
+  }
+
+  .stack-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .stack-pill {
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 6px 14px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.08);
+    color: var(--text2);
+    background: var(--bg3);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .stack-pill span { color: var(--text); }
+
+  .fiap-badge {
+    margin-top: 40px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text2);
+    opacity: 0.5;
+    position: relative;
+    z-index: 1;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-badge">Global Solution 2026-1 · FIAP · Disruptive Architectures</div>
+  <h1>🌦️ <span>AgroAlert</span></h1>
+  <p class="subtitle">Arquitetura de IA Generativa para Alertas Climáticos Rurais</p>
+</div>
+
+<div class="diagram">
+
+  <!-- Node 1: Satélites -->
+  <div class="layer">
+    <div class="node yellow">
+      <div class="node-icon">🛰️</div>
+      <div class="node-content">
+        <div class="node-title">Satélites Meteorológicos</div>
+        <div class="node-desc">GOES-16 · METEOSAT · NOAA<br>Monitoramento orbital contínuo</div>
+      </div>
+      <div class="node-tag">Órbita Geoestacionária</div>
+    </div>
+  </div>
+
+  <div class="arrow">
+    <div class="arrow-line">
+      <div class="arrow-label">dados brutos atmosféricos</div>
+    </div>
+    <div class="arrow-head"></div>
+  </div>
+
+  <!-- Node 2: Open-Meteo -->
+  <div class="layer">
+    <div class="node blue">
+      <div class="node-icon">🌐</div>
+      <div class="node-content">
+        <div class="node-title">Open-Meteo API</div>
+        <div class="node-desc">api.open-meteo.com · Gratuita · Sem chave<br>Chuva · Temperatura · Vento · 3 dias</div>
+      </div>
+      <div class="node-tag">HTTP GET · JSON</div>
+    </div>
+  </div>
+
+  <div class="arrow">
+    <div class="arrow-line">
+      <div class="arrow-label">JSON com previsão</div>
+    </div>
+    <div class="arrow-head"></div>
+  </div>
+
+  <!-- Node 3: Backend -->
+  <div class="layer">
+    <div class="node">
+      <div class="node-icon">🐍</div>
+      <div class="node-content">
+        <div class="node-title">Backend Python</div>
+        <div class="node-desc">main.py · buscar_clima() · gerar_alerta()<br>Processa dados + monta prompt contextual</div>
+      </div>
+      <div class="node-tag">Python 3.11</div>
+    </div>
+  </div>
+
+  <div class="arrow">
+    <div class="arrow-line">
+      <div class="arrow-label">prompt + dados climáticos</div>
+    </div>
+    <div class="arrow-head"></div>
+  </div>
+
+  <!-- Node 4: IA -->
+  <div class="layer">
+    <div class="node orange">
+      <div class="node-icon">🤖</div>
+      <div class="node-content">
+        <div class="node-title">IA Generativa — Groq API</div>
+        <div class="node-desc">LLaMA 3.3 70B Versatile<br>Geração de linguagem natural em português</div>
+      </div>
+      <div class="node-tag">IA Generativa</div>
+    </div>
+  </div>
+
+  <div class="arrow">
+    <div class="arrow-line">
+      <div class="arrow-label">alerta em texto natural</div>
+    </div>
+    <div class="arrow-head"></div>
+  </div>
+
+  <!-- Node 5: Interface -->
+  <div class="layer">
+    <div class="node green">
+      <div class="node-icon">💻</div>
+      <div class="node-content">
+        <div class="node-title">Interface Web — Gradio</div>
+        <div class="node-desc">localhost:7860 · Dropdown + Textbox<br>Acessível pelo navegador</div>
+      </div>
+      <div class="node-tag">Gradio UI</div>
+    </div>
+  </div>
+
+  <div class="arrow">
+    <div class="arrow-line"></div>
+    <div class="arrow-head"></div>
+  </div>
+
+  <!-- Node 6: Agricultor -->
+  <div class="layer">
+    <div class="node green">
+      <div class="node-icon">👨‍🌾</div>
+      <div class="node-content">
+        <div class="node-title">Agricultor</div>
+        <div class="node-desc">Pequeno produtor rural brasileiro<br>Recebe alerta personalizado na sua região</div>
+      </div>
+      <div class="node-tag">Usuário Final</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Output cards -->
+<div class="output-section" style="margin-top: 32px;">
+  <div class="output-title">// Output gerado pela IA para cada consulta</div>
+  <div class="output-items">
+    <div class="output-item">
+      <div class="output-item-icon">🔴🟡🟢</div>
+      <div class="output-item-text"><strong>Nível de Risco</strong>ALTO / MÉDIO / BAIXO</div>
+    </div>
+    <div class="output-item">
+      <div class="output-item-icon">⚠️</div>
+      <div class="output-item-text"><strong>Principal Risco</strong>Seca, chuva intensa, granizo</div>
+    </div>
+    <div class="output-item">
+      <div class="output-item-icon">✅</div>
+      <div class="output-item-text"><strong>3 Ações Práticas</strong>O que fazer agora</div>
+    </div>
+    <div class="output-item">
+      <div class="output-item-icon">🌱</div>
+      <div class="output-item-text"><strong>Janela de Plantio</strong>Melhor dia para plantar</div>
+    </div>
+  </div>
+</div>
+
+<!-- Stack -->
+<div class="stack">
+  <div class="stack-title">// Stack tecnológica</div>
+  <div class="stack-items">
+    <div class="stack-pill">🐍 <span>Python 3.11</span></div>
+    <div class="stack-pill">🎨 <span>Gradio</span> · Interface</div>
+    <div class="stack-pill">🌐 <span>Open-Meteo API</span> · Clima</div>
+    <div class="stack-pill">⚡ <span>Groq API</span> · Inferência</div>
+    <div class="stack-pill">🤖 <span>LLaMA 3.3 70B</span> · Modelo</div>
+    <div class="stack-pill">🆓 <span>100% Gratuito</span></div>
+  </div>
+</div>
+
+<div class="fiap-badge">FIAP · Global Solution 2026-1 · Disruptive Architectures: IoT, IOB & Generative IA</div>
+
+</body>
+</html>
